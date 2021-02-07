@@ -1,5 +1,6 @@
 class Player {
-    constructor(name, score) {
+    constructor(id, name, score) {
+        this.id = id
         this.name = name
         this.score = score
     }
@@ -9,26 +10,26 @@ class Game {
     constructor() {
         this.answers = ['bloop', 'blep', 'blap'] //change this to closure
     }
-    addScore(playerName, players, amount = 15) {
+    addScore(id, playerName, players, amount = 15) {
         const score = this.getScore(playerName, players)
         const left = players.filter(p => p.name !== playerName)
-        const newPlayers = this.addPlayer(playerName, left, amount+score)
+        const newPlayers = this.addPlayer(id, playerName, left, amount+score)
         return newPlayers
     }
     getScore(playerName, players) {
         return players.filter(p => p.name === playerName)[0].score
     }
-    fillPlayers(playerNames, startingScore = 0) {
-        return playerNames.map(name => new Player(name, startingScore))
+    // fillPlayers(playerNames, startingScore = 0) {
+    //     return playerNames.map(name => new Player(id, name, startingScore))
+    // } //wont work because of ids for now ^
+    addPlayer(id, playerName, players, startingScore = 0) {
+        return [...players, new Player(id, playerName, startingScore)]
     }
-    addPlayer(playerName, players, startingScore = 0) {
-        return [...players, new Player(playerName, startingScore)]
+    removePlayer(id, players) {
+        return players.filter(player => player.id !== id)
     }
-    removePlayer(name, players) {
-        return players.filter(player => player.name !== name)
-    }
-    answer(playerName, players, answer, currentAnswerIndex) {
-        return (answer !== this.answers[currentAnswerIndex]) ? players : this.addScore(playerName, players)
+    answer(id, playerName, players, answer, currentAnswerIndex) {
+        return (answer !== this.answers[currentAnswerIndex]) ? players : this.addScore(id, playerName, players)
     }
     endGame(players) {
         return players.sort((x,y) => x.score <= y.score ? 1 : -1)
