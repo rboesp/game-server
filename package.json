@@ -15,6 +15,7 @@
     "inquirer": "^7.3.3",
     "reload": "^3.1.1",
     "socket.io": "^3.1.1",
-    "socket.io-client": "^3.1.1"
+    "socket.io-client": "^3.1.1",
+    "socketio-wildcard": "^2.0.0"
   }
 }

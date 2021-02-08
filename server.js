@@ -3,6 +3,9 @@ const app = express()
 const http = require('http').createServer(app)
 const io = require('socket.io')(http)
 const reload = require('reload')
+const middleware = require('socketio-wildcard')()
+
+io.use(middleware)
 
 //port for express server
 const port = process.env.PORT || 3000
