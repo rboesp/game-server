@@ -8,7 +8,7 @@ class Player {
 
 class Game {
     constructor() {
-        this.answers = ['bloop', 'blep', 'blap'] //change this to closure
+        this.answers = ['bloop', 'blep', 'blap'] //stack
         this.scoreIncrease = 15
     }
     addScore = (args) => {
@@ -30,20 +30,28 @@ class Game {
     //     return playerNames.map(name => new Player(id, name, startingScore))
     // } //wont work because of ids for now ^
     addPlayer(args, score = 0) {
-        return [...args.players, new Player(args.id, args.playerName, score)]
+        const newPlayers = [...args.players, new Player(args.id, args.playerName, score)]
+        return newPlayers
     }
     removePlayer(args) {
-        return args.players.filter(player => player.id !== args.id)
+        const playersLeft = args.players.filter(player => player.id !== args.id)
+        return playersLeft
     }
     answer = (args) => {
+        if(!this.answers.length) this.endGame(args.players)
         return (
-            (args.answer !== this.answers[args.currentAnswerIndex]) 
+            (args.answer !== this.answers[this.answers.length - 1]) 
             ? args.players 
-            : this.addScore(args)
+            : this.correctAnswer(args)
         )
     }
+    correctAnswer = (args) => {
+        this.answers.pop()
+        return this.addScore(args)
+    }
     endGame(players) {
-        return players.sort((x,y) => x.score <= y.score ? 1 : -1)
+        const sortedPlayers = players.sort((x,y) => x.score <= y.score ? 1 : -1)
+        return sortedPlayers
     }
 }
 

@@ -4,7 +4,6 @@ const {Game} = require('./game')
 const game = new Game()
 
 let global_players = []
-let currentAnswerIndex = 0
 
 class GameAction {
     constructor(actionCB) {
@@ -33,12 +32,10 @@ const getArgsRunAction = (eventString, data, id) => {
     const args = { 
         id: id, 
         players: global_players,
-        currentAnswerIndex: currentAnswerIndex,
         ...data
     } //packaged here
     const newPlayers = actions[eventString].action(args)
     if(newPlayers[newPlayers.length - 1] === 'score') {
-        currentAnswerIndex++
         newPlayers.pop()
     }
     global_players = newPlayers
@@ -47,7 +44,6 @@ const getArgsRunAction = (eventString, data, id) => {
 
 const handleIncomingPacket = (id, packet, io) => {
     const [eventString, data] = packet.data
-    console.log(eventString, data);
     const newPlayers = getArgsRunAction(eventString, data, id)
     io.emit('players', newPlayers)
 }
