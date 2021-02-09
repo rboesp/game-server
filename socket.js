@@ -4,73 +4,56 @@ const {Game} = require('./game')
 const game = new Game()
 
 let global_players = []
-let globalAnswerIndex = 0
+let currentAnswerIndex = 0
 
-const actions = {
-    "add" : {
-        getArgs: function(id, incoming) {
-            const args = {
-                id: id,
-                name: incoming
-            }
-            return args
-        },
-        action: function(args){
-            console.log('Adding player...');
-            return game.addPlayer(args.id, args.name, global_players, 0)
-        }
-    },
-    'answer': {
-        getArgs: function (id, incoming) {
-            const args = {id: id, ...incoming}
-            return args
-        },
-        action: function (args) {
-            console.log('Player answering...')
-            console.log(args);
-            return game.answer(args.id, args.name, global_players, args.answer, globalAnswerIndex++)
-        }
-    },
-    'disconnect': {
-        getArgs: function (id, incoming) {
-            const args = { id: id }
-            return args
-        },
-        action: function (args) {
-            console.log('Player leaving...');
-            return game.removePlayer(args.id, global_players)
-        }
+class GameAction {
+    constructor(actionCB) {
+        this.actionCB = actionCB
+    }
+    action(args){
+        return this.actionCB(args) //packaged here in arg
     }
 }
 
-const sendToClients = (io, eventString, arg) => {
-    io.emit(eventString, arg)
-}
+const eventStringsTiedToGameActions = [
+    {name: 'add', action: game.addPlayer},
+    {name: 'answer', action: game.answer},
+    {name: 'disconnect', action : game.removePlayer}
+]
 
-const runAction = (eventString, args, io) => {
+
+/**entry point */
+//chec kfor better way, if cant find check ramda
+const actions = {}
+eventStringsTiedToGameActions.forEach(action => {
+    actions[action.name] = new GameAction(action.action)
+})
+
+const getArgsRunAction = (eventString, data, id) => {
+    const args = { 
+        id: id, 
+        players: global_players,
+        currentAnswerIndex: currentAnswerIndex,
+        ...data
+    } //packaged here
     const newPlayers = actions[eventString].action(args)
+    if(newPlayers[newPlayers.length - 1] === 'score') {
+        currentAnswerIndex++
+        newPlayers.pop()
+    }
     global_players = newPlayers
-    sendToClients(io, 'players', newPlayers)
+    return newPlayers
 }
 
-//get args based on event String passed in
-const getArgs = (eventString, id, incoming) => {
-    return actions[eventString].getArgs(id, incoming)
-}
-
-const getArgsRunAction = (eventString, io, id, incomingData) => {
-    const args = getArgs(eventString, id, incomingData)
-    runAction(eventString, args, io)
-}
-
-const handleIncomingPacket = (packet, io, id) => {
+const handleIncomingPacket = (id, packet, io) => {
     const [eventString, data] = packet.data
-    getArgsRunAction(eventString, io, id, data)
-  }
+    console.log(eventString, data);
+    const newPlayers = getArgsRunAction(eventString, data, id)
+    io.emit('players', newPlayers)
+}
 
 const exposeSocketListeners = (io, socket) => {
-    socket.on('*', packet => handleIncomingPacket(packet, io, socket.id))
-
+    socket.on('*', packet => handleIncomingPacket(socket.id, packet, io))
     socket.on('disconnect', () => getArgsRunAction('disconnect', io, socket.id, null))
 }
 

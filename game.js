@@ -9,11 +9,18 @@ class Player {
 class Game {
     constructor() {
         this.answers = ['bloop', 'blep', 'blap'] //change this to closure
+        this.scoreIncrease = 15
     }
-    addScore(id, playerName, players, amount = 15) {
-        const score = this.getScore(playerName, players)
-        const left = players.filter(p => p.name !== playerName)
-        const newPlayers = this.addPlayer(id, playerName, left, amount+score)
+    addScore = (args) => {
+        const score = this.getScore(args.playerName, args.players)
+        const left = args.players.filter(p => p.name !== args.playerName)
+        const newArgs = {
+            players : left,
+            id : args.id,
+            playerName: args.playerName,
+        }
+        const newPlayers = this.addPlayer(newArgs, score + this.scoreIncrease)
+        newPlayers.push('score')
         return newPlayers
     }
     getScore(playerName, players) {
@@ -22,14 +29,18 @@ class Game {
     // fillPlayers(playerNames, startingScore = 0) {
     //     return playerNames.map(name => new Player(id, name, startingScore))
     // } //wont work because of ids for now ^
-    addPlayer(id, playerName, players, startingScore = 0) {
-        return [...players, new Player(id, playerName, startingScore)]
+    addPlayer(args, score = 0) {
+        return [...args.players, new Player(args.id, args.playerName, score)]
     }
-    removePlayer(id, players) {
-        return players.filter(player => player.id !== id)
+    removePlayer(args) {
+        return args.players.filter(player => player.id !== args.id)
     }
-    answer(id, playerName, players, answer, currentAnswerIndex) {
-        return (answer !== this.answers[currentAnswerIndex]) ? players : this.addScore(id, playerName, players)
+    answer = (args) => {
+        return (
+            (args.answer !== this.answers[args.currentAnswerIndex]) 
+            ? args.players 
+            : this.addScore(args)
+        )
     }
     endGame(players) {
         return players.sort((x,y) => x.score <= y.score ? 1 : -1)

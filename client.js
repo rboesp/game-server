@@ -32,8 +32,10 @@ const getName = () => {
 }
 const sendName = (userInput) => {
     const {name} = userInput
-    socket.emit('add', name)
+    socket.emit('add', { playerName : name })
 }
+//todo: emit the correct object 
+
 
 const getNextCmd = (username) => {
     prompt(answerInput)
@@ -45,7 +47,7 @@ const getNextCmd = (username) => {
 
 const next = (cmd, username) => {
     socket.emit('answer', {
-        name: username, 
+        playerName: username, 
         answer: cmd
     }) //next get it with inquirer
     getNextCmd(username)
